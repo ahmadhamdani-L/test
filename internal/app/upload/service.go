@@ -14,6 +14,7 @@ import (
 
 type Service interface {
 	Create(ctx *abstraction.Context, payload *dto.UploadCreateRequest) (*dto.UploadCreateResponse, error)
+	Read(ctx *abstraction.Context, payload *dto.UploadCreateRequest) (*dto.UploadCreateResponse, error)
 }
 
 type service struct {
@@ -40,6 +41,27 @@ func (s *service) Create(ctx *abstraction.Context, payload *dto.UploadCreateRequ
 			return res.ErrorBuilder(&res.ErrorConstant.UnprocessableEntity, err)
 		}
 
+		return nil
+	}); err != nil {
+		return result, err
+
+	}
+	result = &dto.UploadCreateResponse{
+		UploadEntityModel: *data,
+	}
+
+	return result, nil
+}
+
+func (s *service) Read(ctx *abstraction.Context, payload *dto.UploadCreateRequest) (*dto.UploadCreateResponse, error) {
+	var result *dto.UploadCreateResponse
+	var data *model.UploadEntityModel
+
+	if err = trxmanager.New(s.Db).WithTrx(ctx, func(ctx *abstraction.Context) error {
+		data, err = s.Repository.Read(ctx, &payload.UploadEntity)
+		if err != nil {
+			return res.ErrorBuilder(&res.ErrorConstant.UnprocessableEntity, err)
+		}
 		return nil
 	}); err != nil {
 		return result, err
